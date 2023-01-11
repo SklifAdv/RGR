@@ -1,0 +1,94 @@
+plugins {
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    alias(dropboxJavaSdkLibs.plugins.dependency.guard)
+}
+
+android {
+    compileSdkVersion 33
+    buildToolsVersion "33.0.0"
+
+    defaultConfig {
+        applicationId "com.dropbox.core.examples.android"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+
+        Properties localProperties = getLocalProperties()
+        String dropboxKey = localProperties['DROPBOX_APP_KEY']
+        if (dropboxKey == null) {
+            logger.warn("No value provided for DROPBOX_APP_KEY.  Specify a value in a examples/android/local.properties file. You can register for one at https://developers.dropbox.com/")
+            dropboxKey = "PUT_YOUR_APP_KEY_HERE"
+        }
+        buildConfigField "String", "DROPBOX_APP_KEY", "\"${dropboxKey}\""
+        manifestPlaceholders = [dropboxKey: dropboxKey]
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled true
+            shrinkResources true
+            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
+        }
+        debug {
+            minifyEnabled false
+            shrinkResources false
+        }
+    }
+
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/NOTICE.txt'
+    }
+
+    lintOptions {
+        disable 'InvalidPackage'
+        abortOnError false
+    }
+
+    kotlinOptions {
+        jvmTarget = '1.8'
+    }
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+}
+
+dependencies {
+    implementation(project(":dropbox-sdk-java"))
+
+    implementation(dropboxJavaSdkLibs.kotlin.stdlib)
+    implementation(dropboxJavaSdkLibs.kotlin.coroutines)
+
+    implementation(dropboxJavaSdkLibs.androidx.appcompat)
+    implementation(dropboxJavaSdkLibs.androidx.recyclerview)
+    implementation(dropboxJavaSdkLibs.androidx.core.ktx)
+    implementation(dropboxJavaSdkLibs.androidx.constraintlayout)
+    implementation(dropboxJavaSdkLibs.androidx.lifecycle.runtime.ktx)
+    implementation(dropboxJavaSdkLibs.android.material)
+
+    implementation(dropboxJavaSdkLibs.glide)
+
+    implementation(dropboxJavaSdkLibs.okhttp3)
+
+    testImplementation(dropboxJavaSdkLibs.test.junit)
+
+    androidTestImplementation(dropboxJavaSdkLibs.androidx.test.junit)
+    androidTestImplementation(dropboxJavaSdkLibs.androidx.test.espresso.core)
+}
+
+def getLocalProperties() {
+    Properties props = new Properties()
+    if (file('local.properties').exists()) {
+        props.load(new FileInputStream(file('local.properties')))
+    }
+    return props
+}
+
+dependencyGuard {
+    configuration("releaseRuntimeClasspath")
+}
